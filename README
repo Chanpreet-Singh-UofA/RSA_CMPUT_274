@@ -1,0 +1,69 @@
+	
+-----------------------------------------------------------------------------------------------------
+
+Name: Chanpreet Singh (1576137)
+	  Kaiwen Tang (1575518)
+CMPUT 274 - Tangible Compting - Fall 2019
+Major Assignment 2 part 2
+
+------------------------------------------------------------------------------------------------------
+=> Included File:
+---------------
+
+ 1) encrypted_communication_part2.cpp
+ 2) README
+ 3) Makefile
+
+-------------------------------------------------------------------------------------------------------
+=> User Instructions:
+------------------
+
+=> Accessories:
+----------------
+* 1 - 550 ohm resistor (recommended)
+* 2 Arduino  Mega  Board (AMG)
+* Wires
+
+
+=> Wiring  instructions:
+----------------------------
+
+Arduino 1  Pin 13 <--> Resistor  <-->  Arduino  +5V
+Arduino 2  Pin 13 <--> Resistor (optional)  <-->  Arduino  GND
+TX3 (Arduino 1) <--> RX3 (Arduino 2)
+RX3 (Arduino 1) <--> TX3 (Arduino 2)
+GND (Arduino 1) <--> GND (Arduino 2)
+
+=> Running  Instructions:
+---------------------------
+
+For Arduino 1:
+1.  Connect  the  Arduino  to the PC using an A-B style  USB  cable. Ensurethat  the  Arduino  is using  the  proper  serial  port (/dev/ttyACM0  or -ACM1).
+2. In the  directory  containing  the  files  encrypted_communication_part1.cpp, build-mega2560 and Makefile, use command 'make  upload" to  upload  the  code to the  Arduino.
+3. Code is uploaded, so user can open Serial window by entering command 'serial-mon-0' and then start the chat.
+
+Same step for Arduino 2.
+
+-------------------------------------------------------------------------------------------------------
+=> Program:
+-----------
+
+
+Random key generation:
+
+At the very starting Pin 13 is used to determine if arduino is a client or server. Then function find_keys_mod() is used to compute d,n, and e. 
+-Firstly, two numbers (p and q) are generated 14-bit and 15-bit respectively using fluctuation at pin 1. We do this as long as we dont get prime numbers using primetest() developed during a morning exercise. Then n (arduino's modulus) and totient are computed using formulas mentioned in the assignment description. 
+-Secondly, using calculate_e(), a 15-bit number e (arduinos public key) is computed using fluctuations at pin 1 again, e is computed as long as it dont satisfy conditiond mentioned in the assignment. -Finally, we compute d (arduinos private key) using calculate_d(), we use euclids extended algorithm provided in lecture and algorithm provided in worksheet are used to get the right d satisfying conditions mentioned in assignment.Thus the keys have been generated.
+
+Automatic key Exchange and Handshake:
+The scheme we used for automatic key exchange and handshake follows what is provided in the assignment. Finite states, such as Listen, WaitingForKey, WaitForAck, DataExchange, Start, WaitingForAck, are used to determin which state the client and the server are on. The wait_on_serial3() function is used to dertermin if there is a timeout during the handshake process. If there is, wither the server or the client will return to its beginning phase. client_exchange() function is developed to perform the data exchange for the client, and server_exchange() is developed to perform the data exchange for the server. In the main function, after finishing exchanging the public keys and modulous, we closed the Serial and Serial3 channels and restarted them to get prepared for the encrypted communication. We do so because we found without this, after the two arduinos successfully exchanging their keys, the serial can send information to the client, but the client can;t do it in the other way. After implementing this method, the program works.
+
+
+Communication: (part 1)
+
+Whenever, a character is recieved from serial monitor, its read and sent to encrypt(), which uses fast modular exponential algorithm to encrypt the charater as discussed in lectures. We also use mod_multiply() to multiply two 31-bit numbers in a 32-bit type with procedure suggested by the worksheet. Then the encrypted information is written to Serial3 by using uint32_to_serial3() provided in assignment description.
+
+Then the encrypted information is read by another Arduino by using uint32_from_serial3(). Now we send recieved encrypted information to decrypt(), which again use fast modular exponential algorithm to decrypt the charater by using mod_multiply() as earlier. Once information is decrypted we write it onto Serial window. If user enter return charater then we add '\n' on serial and encrypt return character and send it, then when decrypted info is a return character we print '\n' on the recievers Serial too.
+
+-----------------------------------------------------------------------------------------------------
+
